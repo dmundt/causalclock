@@ -45,13 +45,13 @@ type memoryListener struct {
 
 // memoryConnection implements Connection for in-memory transport.
 type memoryConnection struct {
-	localAddr    string
-	remoteAddr   string
-	transport    *MemoryTransport
-	inbound      *memQueue  // Messages coming TO this connection
-	outbound     *memQueue  // Messages going FROM this connection
-	closed       bool
-	mu           sync.Mutex
+	localAddr  string
+	remoteAddr string
+	transport  *MemoryTransport
+	inbound    *memQueue // Messages coming TO this connection
+	outbound   *memQueue // Messages going FROM this connection
+	closed     bool
+	mu         sync.Mutex
 }
 
 // NewMemoryTransport creates a new in-memory deterministic transport.
@@ -123,8 +123,8 @@ func (t *MemoryTransport) Dial(ctx context.Context, remoteAddr string) (Connecti
 	}
 
 	// Create the server-side connection
-	serverOutbound := clientInbound   // Server sends on client's inbound
-	serverInbound := clientOutbound   // Server receives from client's outbound
+	serverOutbound := clientInbound // Server sends on client's inbound
+	serverInbound := clientOutbound // Server receives from client's outbound
 
 	serverConn := &memoryConnection{
 		localAddr:  remoteAddr,

@@ -9,34 +9,34 @@ import (
 // MockTransport is a fully controllable mock transport for testing.
 // It allows fine-grained control over message delivery and failure scenarios.
 type MockTransport struct {
-	mu              sync.RWMutex
-	connections     map[string]*MockConnection
-	listeners       map[string]*MockListener
-	closed          bool
-	config          TransportConfig
-	onSend          func(*Message) error            // Hook called on Send
-	onRecv          func(*Message)                  // Hook called on Recv
-	onDial          func(addr string) error         // Hook called on Dial
-	deliveryDelay   func(*Message) bool             // Return true to drop
-	messageDropper  func(*Message) bool             // Return true to drop message
+	mu             sync.RWMutex
+	connections    map[string]*MockConnection
+	listeners      map[string]*MockListener
+	closed         bool
+	config         TransportConfig
+	onSend         func(*Message) error    // Hook called on Send
+	onRecv         func(*Message)          // Hook called on Recv
+	onDial         func(addr string) error // Hook called on Dial
+	deliveryDelay  func(*Message) bool     // Return true to drop
+	messageDropper func(*Message) bool     // Return true to drop message
 }
 
 // MockConnection is a controllable test connection.
 type MockConnection struct {
-	mu              sync.Mutex
-	localAddr       string
-	remoteAddr      string
-	closed          bool
-	send_count      atomic.Int64
-	recv_count      atomic.Int64
-	messages        chan *Message
-	transport       *MockTransport
-	onSend          func(*Message) error // Override for this connection
-	onRecv          func(*Message)        // Override for this connection
-	willFailSend    bool
-	willFailRecv    bool
-	sendErrorCount  int
-	sendErrorAfter  int
+	mu             sync.Mutex
+	localAddr      string
+	remoteAddr     string
+	closed         bool
+	send_count     atomic.Int64
+	recv_count     atomic.Int64
+	messages       chan *Message
+	transport      *MockTransport
+	onSend         func(*Message) error // Override for this connection
+	onRecv         func(*Message)       // Override for this connection
+	willFailSend   bool
+	willFailRecv   bool
+	sendErrorCount int
+	sendErrorAfter int
 }
 
 // MockListener is a controllable test listener.
@@ -99,10 +99,10 @@ func (t *MockTransport) Dial(ctx context.Context, remoteAddr string) (Connection
 	}
 
 	conn := &MockConnection{
-		localAddr:   t.config.NodeID,
-		remoteAddr:  remoteAddr,
-		transport:   t,
-		messages:    make(chan *Message, 64),
+		localAddr:  t.config.NodeID,
+		remoteAddr: remoteAddr,
+		transport:  t,
+		messages:   make(chan *Message, 64),
 	}
 
 	t.mu.Lock()

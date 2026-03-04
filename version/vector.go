@@ -56,7 +56,7 @@ func (vv *VersionVector) Copy() *VersionVector {
 	if vv == nil {
 		return NewVersionVector()
 	}
-	
+
 	copy := &VersionVector{
 		versions: make(map[ReplicaID]uint64, len(vv.versions)),
 	}
@@ -113,11 +113,11 @@ func (vv *VersionVector) Merge(other *VersionVector) {
 	if other == nil || other.versions == nil {
 		return
 	}
-	
+
 	if vv.versions == nil {
 		vv.versions = make(map[ReplicaID]uint64, len(other.versions))
 	}
-	
+
 	for replica, otherVersion := range other.versions {
 		if currentVersion := vv.versions[replica]; otherVersion > currentVersion {
 			vv.versions[replica] = otherVersion
@@ -150,11 +150,11 @@ func (vv *VersionVector) Compare(other *VersionVector) clock.Comparison {
 	// Normalize nil vectors to empty vectors
 	vvEmpty := vv == nil || vv.versions == nil || len(vv.versions) == 0
 	otherEmpty := other == nil || other.versions == nil || len(other.versions) == 0
-	
+
 	if vvEmpty && otherEmpty {
 		return clock.EqualCmp
 	}
-	
+
 	if vvEmpty {
 		// vv is empty, other is not
 		// Check if other has any non-zero values
@@ -165,7 +165,7 @@ func (vv *VersionVector) Compare(other *VersionVector) clock.Comparison {
 		}
 		return clock.EqualCmp
 	}
-	
+
 	if otherEmpty {
 		// vv is not empty, other is
 		for _, v := range vv.versions {
@@ -175,7 +175,7 @@ func (vv *VersionVector) Compare(other *VersionVector) clock.Comparison {
 		}
 		return clock.EqualCmp
 	}
-	
+
 	// Both vectors have entries
 	// Collect all replicas present in either vector
 	allReplicas := make(map[ReplicaID]struct{})
@@ -185,27 +185,27 @@ func (vv *VersionVector) Compare(other *VersionVector) clock.Comparison {
 	for replica := range other.versions {
 		allReplicas[replica] = struct{}{}
 	}
-	
+
 	// Track relationship
 	hasGreater := false
 	hasLess := false
-	
+
 	for replica := range allReplicas {
 		vvVal := vv.versions[replica]
 		otherVal := other.versions[replica]
-		
+
 		if vvVal > otherVal {
 			hasGreater = true
 		} else if vvVal < otherVal {
 			hasLess = true
 		}
-		
+
 		// Early exit if we know it's concurrent
 		if hasGreater && hasLess {
 			return clock.ConcurrentCmp
 		}
 	}
-	
+
 	if hasGreater && !hasLess {
 		return clock.AfterCmp
 	}
@@ -223,17 +223,17 @@ func (vv *VersionVector) Replicas() []ReplicaID {
 	if vv == nil || vv.versions == nil {
 		return []ReplicaID{}
 	}
-	
+
 	replicas := make([]ReplicaID, 0, len(vv.versions))
 	for replica := range vv.versions {
 		replicas = append(replicas, replica)
 	}
-	
+
 	// Sort for deterministic ordering
 	sort.Slice(replicas, func(i, j int) bool {
 		return replicas[i] < replicas[j]
 	})
-	
+
 	return replicas
 }
 
@@ -250,7 +250,7 @@ func (vv *VersionVector) IsEmpty() bool {
 	if vv == nil || vv.versions == nil || len(vv.versions) == 0 {
 		return true
 	}
-	
+
 	for _, v := range vv.versions {
 		if v != 0 {
 			return false
@@ -265,18 +265,18 @@ func (vv *VersionVector) String() string {
 	if vv == nil || vv.versions == nil || len(vv.versions) == 0 {
 		return "{}"
 	}
-	
+
 	replicas := vv.Replicas()
 	var buf bytes.Buffer
 	buf.WriteString("{")
-	
+
 	for i, replica := range replicas {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
 		fmt.Fprintf(&buf, "%s:%d", replica, vv.versions[replica])
 	}
-	
+
 	buf.WriteString("}")
 	return buf.String()
 }

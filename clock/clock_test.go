@@ -33,7 +33,7 @@ func TestNew(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			c := NewClock(tt.nodes...)
 			if c == nil {
-			t.Fatal("NewClock returned nil")
+				t.Fatal("NewClock returned nil")
 			}
 			if got := c.Len(); got != tt.want {
 				t.Errorf("Len() = %d, want %d", got, tt.want)

@@ -315,14 +315,14 @@ Include marshalled clock data in `Message.VectorClockData`:
 ```go
 import (
     "encoding/json"
-    vclock "github.com/dmundt/causalclock"
+    "github.com/dmundt/causalclock/clock"
 )
 
 // Send
-clock := vclock.NewClock()
-clock.Increment("node-1")
+c := clock.NewClock()
+c.Increment("node-1")
 
-clockData, _ := json.Marshal(clock)
+clockData, _ := json.Marshal(c)
 msg := &Message{
     From: "node-1",
     To: "node-2",
@@ -333,20 +333,20 @@ conn.Send(ctx, msg)
 
 // Receive
 received, _ := conn.Recv(ctx)
-var receivedClock vclock.Clock
+var receivedClock clock.Clock
 json.Unmarshal(received.VectorClockData, &receivedClock)
 ```
 
 ### Pattern 2: Causality Check Before Processing
 
 ```go
-func processMessage(msg *Message, localClock *vclock.Clock) error {
+func processMessage(msg *Message, localClock *clock.Clock) error {
     if msg.VectorClockData == nil {
         return fmt.Errorf("missing vector clock data")
     }
 
     // Deserialize sender's clock
-    var senderClock vclock.Clock
+    var senderClock clock.Clock
     json.Unmarshal(msg.VectorClockData, &senderClock)
 
     // Check causality
@@ -603,7 +603,7 @@ func (p *ConnectionPool) Return(addr string, conn Connection) {
 
 ## Related Concepts
 
-- **Vector Clock**: Causality tracking (separate `vclock` package)
+- **Vector Clock**: Causality tracking (separate `clock` package)
 - **Message Ordering**: Application-level concern with vector clocks
 - **Exactly-Once Delivery**: Implement with [seq + ack pattern]
 - **Consensus**: Use with Raft/Paxos at application layer

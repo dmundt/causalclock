@@ -96,10 +96,10 @@ func TestMemoryTransport_Concurrent(t *testing.T) {
 	numMessages := 100
 	for i := 0; i < numMessages; i++ {
 		msg := &Message{
-			From:  "client",
-			To:    "server",
-			Seq:   uint64(i),
-			Body:  []byte("msg"),
+			From: "client",
+			To:   "server",
+			Seq:  uint64(i),
+			Body: []byte("msg"),
 		}
 		clientConn.Send(context.Background(), msg)
 	}

@@ -15,35 +15,35 @@ import (
 // TCPTransport implements Transport over TCP with binary message framing.
 // Messages are framed with a 4-byte big-endian length prefix followed by the message data.
 type TCPTransport struct {
-	mu              sync.RWMutex
-	listener        net.Listener
-	connections     map[string]*TCPConnection
-	config          TransportConfig
-	activeConns     atomic.Int32
-	closed          bool
-	closeOnce       sync.Once
+	mu          sync.RWMutex
+	listener    net.Listener
+	connections map[string]*TCPConnection
+	config      TransportConfig
+	activeConns atomic.Int32
+	closed      bool
+	closeOnce   sync.Once
 }
 
 // TCPConnection implements Connection over a TCP socket.
 type TCPConnection struct {
-	mu         sync.RWMutex
-	conn       net.Conn
-	reader     *bufio.Reader
-	writer     *bufio.Writer
-	closed     bool
-	config     TransportConfig
-	sendMu     sync.Mutex
-	recvMu     sync.Mutex
-	sendCount  atomic.Int64
-	recvCount  atomic.Int64
+	mu        sync.RWMutex
+	conn      net.Conn
+	reader    *bufio.Reader
+	writer    *bufio.Writer
+	closed    bool
+	config    TransportConfig
+	sendMu    sync.Mutex
+	recvMu    sync.Mutex
+	sendCount atomic.Int64
+	recvCount atomic.Int64
 }
 
 // TCPListener implements Listener for TCP connections.
 type TCPListener struct {
-	mu         sync.Mutex
-	tcpList    net.Listener
-	config     TransportConfig
-	closed     bool
+	mu      sync.Mutex
+	tcpList net.Listener
+	config  TransportConfig
+	closed  bool
 }
 
 // NewTCPTransport creates a new TCP-based transport.

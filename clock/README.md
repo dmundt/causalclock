@@ -6,10 +6,9 @@ Implemented production-ready vector clocks for distributed systems event orderin
 
 ## Files Created
 
-1. **[vector_clock.go](vector_clock.go)** - Core vector clock implementation (385 lines)
-2. **[vector_clock_test.go](vector_clock_test.go)** - Comprehensive unit tests (584 lines)
-3. **[vector_clock_example_test.go](vector_clock_example_test.go)** - Documentation examples (302 lines)
-4. **[README.md](README.md)** - Complete API documentation
+1. **[clock.go](clock.go)** - Core vector clock implementation (385 lines)
+2. **[clock_test.go](clock_test.go)** - Comprehensive unit tests (584 lines)
+3. **[example_test.go](example_test.go)** - Documentation examples (302 lines)
 
 ## Implementation Details
 
@@ -187,7 +186,7 @@ ParseClock(s string) (*Clock, error)
 
 ```go
 // Process A sends message
-clockA := vclock.NewClock()
+clockA := clock.NewClock()
 clockA.Increment("A")
 msg := Message{
     Data:       "hello",
@@ -196,19 +195,19 @@ msg := Message{
 send(msg)
 
 // Process B receives and processes
-clockB := vclock.NewClock()
+clockB := clock.NewClock()
 clockB.Merge(msg.VectorClock)
 clockB.Increment("B")
 
 // Determine event ordering
 switch clockA.Compare(clockB) {
-case vclock.BeforeCmp:
+case clock.BeforeCmp:
     // A happened before B
-case vclock.AfterCmp:
+case clock.AfterCmp:
     // A happened after B
-case vclock.ConcurrentCmp:
+case clock.ConcurrentCmp:
     // A and B happened concurrently
-case vclock.EqualCmp:
+case clock.EqualCmp:
     // A and B are identical
 }
 ```
@@ -218,7 +217,7 @@ case vclock.EqualCmp:
 ```go
 type Operation struct {
     Data        interface{}
-    VectorClock *vclock.Clock
+    VectorClock *clock.Clock
 }
 
 op1 := &Operation{Data: "value1", VectorClock: vc1}
@@ -292,8 +291,8 @@ The vector clock implementation:
 
 ## Files Summary
 
-- **Implementation**: 385 lines (vector_clock.go)
-- **Unit Tests**: 584 lines (vector_clock_test.go)
-- **Examples**: 302 lines (vector_clock_example_test.go)
-- **Documentation**: Comprehensive README updates
+- **Implementation**: 385 lines (clock.go)
+- **Unit Tests**: 584 lines (clock_test.go)
+- **Examples**: 302 lines (example_test.go)
+- **Documentation**: This README
 - **Total**: ~1,250 lines of production-ready code

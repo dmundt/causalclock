@@ -30,7 +30,7 @@ func TestNewVersionVector(t *testing.T) {
 			want:     3,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			vv := NewVersionVector(tt.replicas...)
@@ -40,7 +40,7 @@ func TestNewVersionVector(t *testing.T) {
 			if got := vv.Len(); got != tt.want {
 				t.Errorf("Len() = %d, want %d", got, tt.want)
 			}
-			
+
 			// Verify all replicas are initialized to zero
 			for _, replica := range tt.replicas {
 				if got := vv.Get(replica); got != 0 {
@@ -54,22 +54,22 @@ func TestNewVersionVector(t *testing.T) {
 // TestVersionVectorIncrement verifies increment operations.
 func TestVersionVectorIncrement(t *testing.T) {
 	vv := NewVersionVector()
-	
+
 	// First increment should set to 1
 	if got := vv.Increment("replica1"); got != 1 {
 		t.Errorf("First Increment() = %d, want 1", got)
 	}
-	
+
 	// Second increment should set to 2
 	if got := vv.Increment("replica1"); got != 2 {
 		t.Errorf("Second Increment() = %d, want 2", got)
 	}
-	
+
 	// Different replica should start at 1
 	if got := vv.Increment("replica2"); got != 1 {
 		t.Errorf("Increment(replica2) = %d, want 1", got)
 	}
-	
+
 	// Verify state
 	if vv.Get("replica1") != 2 {
 		t.Errorf("Get(replica1) = %d, want 2", vv.Get("replica1"))
@@ -82,18 +82,18 @@ func TestVersionVectorIncrement(t *testing.T) {
 // TestVersionVectorGetSet verifies get and set operations.
 func TestVersionVectorGetSet(t *testing.T) {
 	vv := NewVersionVector()
-	
+
 	// Get on empty vector should return 0
 	if got := vv.Get("nonexistent"); got != 0 {
 		t.Errorf("Get(nonexistent) = %d, want 0", got)
 	}
-	
+
 	// Set and retrieve
 	vv.Set("replica1", 42)
 	if got := vv.Get("replica1"); got != 42 {
 		t.Errorf("Get(replica1) = %d, want 42", got)
 	}
-	
+
 	// Set to zero (should keep the entry)
 	vv.Set("replica1", 0)
 	if got := vv.Get("replica1"); got != 0 {
@@ -109,9 +109,9 @@ func TestVersionVectorCopy(t *testing.T) {
 	original := NewVersionVector()
 	original.Set("replica1", 10)
 	original.Set("replica2", 20)
-	
+
 	copy := original.Copy()
-	
+
 	// Verify copy has same values
 	if copy.Get("replica1") != 10 {
 		t.Errorf("Copy Get(replica1) = %d, want 10", copy.Get("replica1"))
@@ -119,11 +119,11 @@ func TestVersionVectorCopy(t *testing.T) {
 	if copy.Get("replica2") != 20 {
 		t.Errorf("Copy Get(replica2) = %d, want 20", copy.Get("replica2"))
 	}
-	
+
 	// Mutate original
 	original.Set("replica1", 999)
 	original.Set("replica3", 30)
-	
+
 	// Verify copy is unaffected
 	if copy.Get("replica1") != 10 {
 		t.Errorf("Copy Get(replica1) after mutation = %d, want 10", copy.Get("replica1"))
@@ -131,7 +131,7 @@ func TestVersionVectorCopy(t *testing.T) {
 	if copy.Get("replica3") != 0 {
 		t.Errorf("Copy Get(replica3) after mutation = %d, want 0", copy.Get("replica3"))
 	}
-	
+
 	// Test copying nil vector
 	var nilVector *VersionVector
 	copyNil := nilVector.Copy()
@@ -188,35 +188,35 @@ func TestVersionVectorMerge(t *testing.T) {
 			expected: map[ReplicaID]uint64{"replicaA": 10, "replicaB": 20},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			vv1 := NewVersionVector()
 			for k, v := range tt.vector1 {
 				vv1.Set(k, v)
 			}
-			
+
 			vv2 := NewVersionVector()
 			for k, v := range tt.vector2 {
 				vv2.Set(k, v)
 			}
-			
+
 			vv1.Merge(vv2)
-			
+
 			// Verify merge result
 			for replica, expected := range tt.expected {
 				if got := vv1.Get(replica); got != expected {
 					t.Errorf("After merge, Get(%s) = %d, want %d", replica, got, expected)
 				}
 			}
-			
+
 			// Verify no extra replicas
 			if vv1.Len() != len(tt.expected) {
 				t.Errorf("After merge, Len() = %d, want %d", vv1.Len(), len(tt.expected))
 			}
 		})
 	}
-	
+
 	// Test merging with nil
 	vv := NewVersionVector()
 	vv.Set("replica1", 5)
@@ -319,24 +319,24 @@ func TestVersionVectorCompare(t *testing.T) {
 			expected: clock.ConcurrentCmp,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			vv1 := NewVersionVector()
 			for k, v := range tt.vector1 {
 				vv1.Set(k, v)
 			}
-			
+
 			vv2 := NewVersionVector()
 			for k, v := range tt.vector2 {
 				vv2.Set(k, v)
 			}
-			
+
 			got := vv1.Compare(vv2)
 			if got != tt.expected {
 				t.Errorf("Compare() = %s, want %s", got, tt.expected)
 			}
-			
+
 			// Verify comparison is symmetric for Equal and Concurrent
 			reverse := vv2.Compare(vv1)
 			switch tt.expected {
@@ -367,27 +367,27 @@ func TestVersionVectorCompareNil(t *testing.T) {
 	empty := NewVersionVector()
 	nonEmpty := NewVersionVector()
 	nonEmpty.Set("replica1", 5)
-	
+
 	// nil vs nil
 	if got := nilVector.Compare(nilVector); got != clock.EqualCmp {
 		t.Errorf("nil.Compare(nil) = %s, want EqualCmp", got)
 	}
-	
+
 	// nil vs empty
 	if got := nilVector.Compare(empty); got != clock.EqualCmp {
 		t.Errorf("nil.Compare(empty) = %s, want EqualCmp", got)
 	}
-	
+
 	// empty vs nil
 	if got := empty.Compare(nilVector); got != clock.EqualCmp {
 		t.Errorf("empty.Compare(nil) = %s, want EqualCmp", got)
 	}
-	
+
 	// nil vs non-empty
 	if got := nilVector.Compare(nonEmpty); got != clock.BeforeCmp {
 		t.Errorf("nil.Compare(nonEmpty) = %s, want BeforeCmp", got)
 	}
-	
+
 	// non-empty vs nil
 	if got := nonEmpty.Compare(nilVector); got != clock.AfterCmp {
 		t.Errorf("nonEmpty.Compare(nil) = %s, want AfterCmp", got)
@@ -398,16 +398,16 @@ func TestVersionVectorCompareNil(t *testing.T) {
 func TestVersionVectorConvenienceMethods(t *testing.T) {
 	vv1 := NewVersionVector()
 	vv1.Set("replica1", 2)
-	
+
 	vv2 := NewVersionVector()
 	vv2.Set("replica1", 5)
-	
+
 	vv3 := NewVersionVector()
 	vv3.Set("replica1", 2)
-	
+
 	vv4 := NewVersionVector()
 	vv4.Set("replica2", 2)
-	
+
 	// Equal
 	if !vv1.Equal(vv3) {
 		t.Error("Equal() returned false for identical vectors")
@@ -415,7 +415,7 @@ func TestVersionVectorConvenienceMethods(t *testing.T) {
 	if vv1.Equal(vv2) {
 		t.Error("Equal() returned true for different vectors")
 	}
-	
+
 	// HappenedBefore
 	if !vv1.HappenedBefore(vv2) {
 		t.Error("HappenedBefore() returned false when it should be true")
@@ -423,7 +423,7 @@ func TestVersionVectorConvenienceMethods(t *testing.T) {
 	if vv2.HappenedBefore(vv1) {
 		t.Error("HappenedBefore() returned true when it should be false")
 	}
-	
+
 	// HappenedAfter
 	if !vv2.HappenedAfter(vv1) {
 		t.Error("HappenedAfter() returned false when it should be true")
@@ -431,7 +431,7 @@ func TestVersionVectorConvenienceMethods(t *testing.T) {
 	if vv1.HappenedAfter(vv2) {
 		t.Error("HappenedAfter() returned true when it should be false")
 	}
-	
+
 	// Concurrent
 	if !vv1.Concurrent(vv4) {
 		t.Error("Concurrent() returned false for concurrent vectors")
@@ -439,7 +439,7 @@ func TestVersionVectorConvenienceMethods(t *testing.T) {
 	if vv1.Concurrent(vv2) {
 		t.Error("Concurrent() returned true for non-concurrent vectors")
 	}
-	
+
 	// Descends
 	if !vv2.Descends(vv1) {
 		t.Error("Descends() returned false when vv2 > vv1")
@@ -450,7 +450,7 @@ func TestVersionVectorConvenienceMethods(t *testing.T) {
 	if vv1.Descends(vv2) {
 		t.Error("Descends() returned true when vv1 < vv2")
 	}
-	
+
 	// Dominates
 	if !vv2.Dominates(vv1) {
 		t.Error("Dominates() returned false when vv2 > vv1")
@@ -458,7 +458,7 @@ func TestVersionVectorConvenienceMethods(t *testing.T) {
 	if vv1.Dominates(vv2) {
 		t.Error("Dominates() returned true when vv1 < vv2")
 	}
-	
+
 	// IsDominatedBy
 	if !vv1.IsDominatedBy(vv2) {
 		t.Error("IsDominatedBy() returned false when vv1 < vv2")
@@ -474,14 +474,14 @@ func TestVersionVectorReplicas(t *testing.T) {
 	vv.Set("charlie", 3)
 	vv.Set("alice", 1)
 	vv.Set("bob", 2)
-	
+
 	replicas := vv.Replicas()
-	
+
 	// Verify length
 	if len(replicas) != 3 {
 		t.Errorf("Replicas() length = %d, want 3", len(replicas))
 	}
-	
+
 	// Verify sorted order
 	expected := []ReplicaID{"alice", "bob", "charlie"}
 	for i, replica := range replicas {
@@ -489,19 +489,19 @@ func TestVersionVectorReplicas(t *testing.T) {
 			t.Errorf("Replicas()[%d] = %s, want %s", i, replica, expected[i])
 		}
 	}
-	
+
 	// Verify mutation doesn't affect vector
 	replicas[0] = "mutated"
 	if vv.Replicas()[0] != "alice" {
 		t.Error("Mutating Replicas() result affected the vector")
 	}
-	
+
 	// Empty vector
 	empty := NewVersionVector()
 	if len(empty.Replicas()) != 0 {
 		t.Errorf("Empty vector Replicas() length = %d, want 0", len(empty.Replicas()))
 	}
-	
+
 	// Nil vector
 	var nilVector *VersionVector
 	if len(nilVector.Replicas()) != 0 {
@@ -516,13 +516,13 @@ func TestVersionVectorIsEmpty(t *testing.T) {
 	if !nilVector.IsEmpty() {
 		t.Error("Nil vector IsEmpty() = false, want true")
 	}
-	
+
 	// Empty vector
 	empty := NewVersionVector()
 	if !empty.IsEmpty() {
 		t.Error("Empty vector IsEmpty() = false, want true")
 	}
-	
+
 	// Vector with zeros
 	zeros := NewVersionVector()
 	zeros.Set("replica1", 0)
@@ -530,14 +530,14 @@ func TestVersionVectorIsEmpty(t *testing.T) {
 	if !zeros.IsEmpty() {
 		t.Error("Vector with all zeros IsEmpty() = false, want true")
 	}
-	
+
 	// Non-empty vector
 	nonEmpty := NewVersionVector()
 	nonEmpty.Set("replica1", 1)
 	if nonEmpty.IsEmpty() {
 		t.Error("Non-empty vector IsEmpty() = true, want false")
 	}
-	
+
 	// Mixed
 	mixed := NewVersionVector()
 	mixed.Set("replica1", 0)
@@ -570,21 +570,21 @@ func TestVersionVectorString(t *testing.T) {
 			expected: "{alice:1, bob:2, charlie:3}",
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			vv := NewVersionVector()
 			for k, v := range tt.vector {
 				vv.Set(k, v)
 			}
-			
+
 			got := vv.String()
 			if got != tt.expected {
 				t.Errorf("String() = %s, want %s", got, tt.expected)
 			}
 		})
 	}
-	
+
 	// Nil vector
 	var nilVector *VersionVector
 	if got := nilVector.String(); got != "{}" {
@@ -599,24 +599,24 @@ func TestVersionVectorDeterministicIteration(t *testing.T) {
 	vv.Set("apple", 2)
 	vv.Set("mango", 3)
 	vv.Set("banana", 4)
-	
+
 	// Call Replicas() multiple times and verify same order
 	replicas1 := vv.Replicas()
 	replicas2 := vv.Replicas()
 	replicas3 := vv.Replicas()
-	
+
 	for i := range replicas1 {
 		if replicas1[i] != replicas2[i] || replicas2[i] != replicas3[i] {
 			t.Errorf("Replicas() order is not deterministic at index %d: %s, %s, %s",
 				i, replicas1[i], replicas2[i], replicas3[i])
 		}
 	}
-	
+
 	// Verify String() is deterministic
 	str1 := vv.String()
 	str2 := vv.String()
 	str3 := vv.String()
-	
+
 	if str1 != str2 || str2 != str3 {
 		t.Errorf("String() is not deterministic: %s, %s, %s", str1, str2, str3)
 	}
@@ -627,29 +627,29 @@ func TestVersionVectorDynamoScenario(t *testing.T) {
 	// Initial write to replica A
 	versionA := NewVersionVector()
 	versionA.Increment("A") // {A:1}
-	
+
 	// Object propagates to replica B
 	versionB := versionA.Copy()
 	versionB.Increment("B") // {A:1, B:1}
-	
+
 	// Concurrent writes happen
 	// Client 1 writes to A
 	version1 := versionB.Copy()
 	version1.Increment("A") // {A:2, B:1}
-	
+
 	// Client 2 writes to B (from old version)
 	version2 := versionB.Copy()
 	version2.Increment("B") // {A:1, B:2}
-	
+
 	// Detect conflict
 	if !version1.Concurrent(version2) {
 		t.Error("Expected version1 and version2 to be concurrent (conflict)")
 	}
-	
+
 	// Resolve by merging
 	merged := version1.Copy()
 	merged.Merge(version2)
-	
+
 	// Merged should dominate both
 	if !merged.Dominates(version1) {
 		t.Error("Merged should dominate version1")
@@ -657,7 +657,7 @@ func TestVersionVectorDynamoScenario(t *testing.T) {
 	if !merged.Dominates(version2) {
 		t.Error("Merged should dominate version2")
 	}
-	
+
 	// Verify merged state
 	if merged.Get("A") != 2 {
 		t.Errorf("Merged Get(A) = %d, want 2", merged.Get("A"))
@@ -685,7 +685,7 @@ func BenchmarkVersionVectorMerge(b *testing.B) {
 		vv1.Set(replica, uint64(i))
 		vv2.Set(replica, uint64(i+50))
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		vv1Copy := vv1.Copy()
@@ -702,7 +702,7 @@ func BenchmarkVersionVectorCompare(b *testing.B) {
 		vv1.Set(replica, uint64(i))
 		vv2.Set(replica, uint64(i+1))
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		vv1.Compare(vv2)
@@ -715,7 +715,7 @@ func BenchmarkVersionVectorCopy(b *testing.B) {
 	for i := 0; i < 100; i++ {
 		vv.Set(ReplicaID(fmt.Sprintf("replica%d", i)), uint64(i))
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = vv.Copy()
@@ -728,7 +728,7 @@ func BenchmarkVersionVectorString(b *testing.B) {
 	for i := 0; i < 50; i++ {
 		vv.Set(ReplicaID(fmt.Sprintf("replica%d", i)), uint64(i))
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = vv.String()

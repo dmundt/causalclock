@@ -91,13 +91,13 @@ type Transport interface {
 
 // Common errors
 var (
-	ErrConnectionClosed  = errors.New("connection closed")
-	ErrListenerClosed    = errors.New("listener closed")
-	ErrDialFailed        = errors.New("dial failed")
-	ErrContextCancelled  = errors.New("context cancelled")
-	ErrMessageTooLarge   = errors.New("message too large")
-	ErrInvalidAddress    = errors.New("invalid address")
-	ErrNotImplemented    = errors.New("not implemented")
+	ErrConnectionClosed = errors.New("connection closed")
+	ErrListenerClosed   = errors.New("listener closed")
+	ErrDialFailed       = errors.New("dial failed")
+	ErrContextCancelled = errors.New("context cancelled")
+	ErrMessageTooLarge  = errors.New("message too large")
+	ErrInvalidAddress   = errors.New("invalid address")
+	ErrNotImplemented   = errors.New("not implemented")
 )
 
 // TransportConfig holds common configuration for transport implementations.

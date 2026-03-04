@@ -134,10 +134,10 @@ func Example_concurrentExchange() {
 	// Broadcast message from node 1
 	for i := 1; i < len(nodes); i++ {
 		msg := &Message{
-			From:  "node-1:6000",
-			To:    nodes[i],
-			Body:  []byte("broadcast message"),
-			Seq:   uint64(i),
+			From: "node-1:6000",
+			To:   nodes[i],
+			Body: []byte("broadcast message"),
+			Seq:  uint64(i),
 		}
 		dialConns[nodes[i]].Send(context.Background(), msg)
 	}
@@ -255,10 +255,10 @@ func Example_connectionLifecycle() {
 func Example_messageRouting() {
 	// Create a simple message router that includes vector clock tracking
 	type VectorClockMessage struct {
-		From      string
-		To        string
-		Clock     map[string]int64
-		Payload   string
+		From    string
+		To      string
+		Clock   map[string]int64
+		Payload string
 	}
 
 	transport := NewMemoryTransport(DefaultConfig())
@@ -332,10 +332,10 @@ func Example_requestResponse() {
 
 		// Server sends response
 		resp := &Message{
-			From:  "server",
-			To:    req.From,
-			Body:  []byte("response"),
-			Seq:   req.Seq,
+			From: "server",
+			To:   req.From,
+			Body: []byte("response"),
+			Seq:  req.Seq,
 		}
 		conn.Send(context.Background(), resp)
 	}()
