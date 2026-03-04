@@ -261,13 +261,23 @@ func (c *memoryConnection) Recv(ctx context.Context) (*Message, error) {
 			c.inbound.mu.Unlock()
 			return msg, nil
 		}
+		closed := c.inbound.closed
 		c.inbound.mu.Unlock()
+
+		// If queue is empty and closed, connection is done
+		if closed {
+			return nil, ErrConnectionClosed
+		}
 
 		// Wait for notification or context cancellation
 		select {
 		case <-ctx.Done():
 			return nil, ErrContextCancelled
-		case <-c.inbound.notifier:
+		case _, ok := <-c.inbound.notifier:
+			if !ok {
+				// Channel closed, connection is closing
+				return nil, ErrConnectionClosed
+			}
 			// Loop back to check messages
 		}
 	}
@@ -278,14 +288,25 @@ func (c *memoryConnection) Close() error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
+	if c.closed {
+		return nil // Already closed, idempotent
+	}
 	c.closed = true
 
+	// Close inbound queue and wake any blocked receivers
 	c.inbound.mu.Lock()
-	c.inbound.closed = true
+	if !c.inbound.closed {
+		c.inbound.closed = true
+		close(c.inbound.notifier)
+	}
 	c.inbound.mu.Unlock()
 
+	// Close outbound queue (no senders should be blocked on it)
 	c.outbound.mu.Lock()
-	c.outbound.closed = true
+	if !c.outbound.closed {
+		c.outbound.closed = true
+		close(c.outbound.notifier)
+	}
 	c.outbound.mu.Unlock()
 
 	return nil

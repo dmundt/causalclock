@@ -101,6 +101,11 @@ func (c *Clock) Copy() *Clock {
 // If the node doesn't exist in the clock, it is initialized to 1.
 //
 // This operation MUTATES the clock. Use Copy() first if immutability is required.
+//
+// Overflow: The counter uses int64 and will wrap to negative at 2^63.
+// This is practically impossible in real systems (would require 292,000 years
+// at 1 million increments per second). No overflow detection is performed
+// for performance reasons.
 func (c *Clock) Increment(node NodeID) int64 {
 	if c.clock == nil {
 		c.clock = make(map[NodeID]int64)
@@ -121,8 +126,13 @@ func (c *Clock) Get(node NodeID) int64 {
 // Set sets the clock value for the given node.
 // This operation MUTATES the clock.
 //
-// Edge case: Setting a negative value is allowed but not recommended.
-// Edge case: Setting a value to 0 keeps the entry (doesn't remove it).
+// Edge cases:
+//   - Setting a negative value is allowed but breaks causality semantics.
+//     Use only for testing or special scenarios. Negative values will
+//     participate in comparisons normally but may produce unexpected results.
+//   - Setting a value to 0 keeps the entry (doesn't remove it).
+//
+// For typical use cases, prefer Increment() which maintains monotonicity.
 func (c *Clock) Set(node NodeID, value int64) {
 	if c.clock == nil {
 		c.clock = make(map[NodeID]int64)
