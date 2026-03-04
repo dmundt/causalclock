@@ -386,6 +386,7 @@ func main() {
     // Detect causality
     fmt.Println(version.HappenedBefore(versionB)) // true
 }
+```
 
 ### Vector Clocks
 
