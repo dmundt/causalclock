@@ -734,3 +734,88 @@ func BenchmarkVersionVectorString(b *testing.B) {
 		_ = vv.String()
 	}
 }
+
+// BenchmarkVersionVectorIncrement_Scaling measures increment performance with varying replica counts.
+func BenchmarkVersionVectorIncrement_Scaling(b *testing.B) {
+	tests := []struct {
+		name     string
+		replicas int
+	}{
+		{"10replicas", 10},
+		{"50replicas", 50},
+		{"100replicas", 100},
+	}
+
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			vv := NewVersionVector()
+			for i := 0; i < tt.replicas; i++ {
+				vv.Set(ReplicaID(fmt.Sprintf("replica%d", i)), uint64(i))
+			}
+
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				vv.Increment(ReplicaID(fmt.Sprintf("replica%d", i%tt.replicas)))
+			}
+		})
+	}
+}
+
+// BenchmarkVersionVectorCompare_Scaling measures compare performance with varying replica counts.
+func BenchmarkVersionVectorCompare_Scaling(b *testing.B) {
+	tests := []struct {
+		name     string
+		replicas int
+	}{
+		{"10replicas", 10},
+		{"50replicas", 50},
+		{"100replicas", 100},
+	}
+
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			vv1 := NewVersionVector()
+			vv2 := NewVersionVector()
+			for i := 0; i < tt.replicas; i++ {
+				vv1.Set(ReplicaID(fmt.Sprintf("replica%d", i)), uint64(i))
+				vv2.Set(ReplicaID(fmt.Sprintf("replica%d", i)), uint64(i+1))
+			}
+
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				vv1.Compare(vv2)
+			}
+		})
+	}
+}
+
+// BenchmarkVersionVectorMerge_Scaling measures merge performance with varying replica counts.
+func BenchmarkVersionVectorMerge_Scaling(b *testing.B) {
+	tests := []struct {
+		name     string
+		replicas int
+	}{
+		{"10replicas", 10},
+		{"50replicas", 50},
+		{"100replicas", 100},
+	}
+
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			vv1 := NewVersionVector()
+			vv2 := NewVersionVector()
+			for i := 0; i < tt.replicas; i++ {
+				vv1.Set(ReplicaID(fmt.Sprintf("replica%d", i)), uint64(i))
+				vv2.Set(ReplicaID(fmt.Sprintf("replica%d", i)), uint64(i+1))
+			}
+
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				vv1.Merge(vv2)
+			}
+		})
+	}
+}

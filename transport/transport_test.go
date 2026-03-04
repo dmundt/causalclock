@@ -390,3 +390,141 @@ func BenchmarkMemoryTransport_SendRecv(b *testing.B) {
 	clientConn.Close()
 	listener.Close()
 }
+
+// BenchmarkTCPTransport_SendRecv benchmarks TCP transport for production use.
+func BenchmarkTCPTransport_SendRecv(b *testing.B) {
+	config := DefaultConfig()
+	config.NodeID = "tcp-bench"
+	transport := NewTCPTransport(config)
+	defer transport.Close()
+
+	// Start listener in goroutine
+	listener, err := transport.Listen(context.Background(), "127.0.0.1:0")
+	if err != nil {
+		b.Fatalf("Listen failed: %v", err)
+	}
+
+	var serverConn Connection
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		serverConn, _ = listener.Accept(ctx)
+	}()
+
+	// Connect client
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	clientConn, err := transport.Dial(ctx, listener.Addr())
+	cancel()
+	if err != nil {
+		b.Fatalf("Dial failed: %v", err)
+	}
+
+	// Wait for server to accept
+	time.Sleep(100 * time.Millisecond)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		msg := &Message{
+			From: "client",
+			To:   "server",
+			Seq:  uint64(i),
+			Body: []byte("benchmark"),
+		}
+		clientConn.Send(context.Background(), msg)
+	}
+
+	clientConn.Close()
+	if serverConn != nil {
+		serverConn.Close()
+	}
+	listener.Close()
+}
+
+// BenchmarkMockTransport_SendRecv benchmarks mock transport for unit testing.
+func BenchmarkMockTransport_SendRecv(b *testing.B) {
+	transport := NewMockTransport(DefaultConfig())
+	defer transport.Close()
+
+	listener, _ := transport.Listen(context.Background(), "server:8000")
+
+	var serverConn Connection
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		serverConn, _ = listener.Accept(ctx)
+	}()
+
+	clientConn, _ := transport.Dial(context.Background(), "server:8000")
+	time.Sleep(50 * time.Millisecond)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		msg := &Message{From: "client", Seq: uint64(i)}
+		clientConn.Send(context.Background(), msg)
+	}
+
+	clientConn.Close()
+	if serverConn != nil {
+		serverConn.Close()
+	}
+	listener.Close()
+}
+
+// BenchmarkTransport_LargeMessages measures performance with larger message payloads.
+func BenchmarkTransport_LargeMessages(b *testing.B) {
+	tests := []struct {
+		name        string
+		payloadSize int
+	}{
+		{"1KB", 1024},
+		{"10KB", 10 * 1024},
+		{"100KB", 100 * 1024},
+	}
+
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			transport := NewMemoryTransport(DefaultConfig())
+			defer transport.Close()
+
+			listener, _ := transport.Listen(context.Background(), "server:9000")
+
+			var serverConn Connection
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+				defer cancel()
+				serverConn, _ = listener.Accept(ctx)
+			}()
+
+			clientConn, _ := transport.Dial(context.Background(), "server:9000")
+			time.Sleep(50 * time.Millisecond)
+
+			payload := make([]byte, tt.payloadSize)
+			for i := 0; i < len(payload); i++ {
+				payload[i] = byte(i % 256)
+			}
+
+			b.ReportAllocs()
+			b.ResetTimer()
+
+			for i := 0; i < b.N; i++ {
+				msg := &Message{
+					From: "client",
+					To:   "server",
+					Seq:  uint64(i),
+					Body: payload,
+				}
+				clientConn.Send(context.Background(), msg)
+			}
+
+			clientConn.Close()
+			if serverConn != nil {
+				serverConn.Close()
+			}
+			listener.Close()
+		})
+	}
+}

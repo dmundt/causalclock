@@ -848,3 +848,88 @@ func BenchmarkString(b *testing.B) {
 		_ = c.String()
 	}
 }
+
+// BenchmarkIncrement_Scaling measures increment performance with varying node counts.
+func BenchmarkIncrement_Scaling(b *testing.B) {
+	tests := []struct {
+		name  string
+		nodes int
+	}{
+		{"10nodes", 10},
+		{"50nodes", 50},
+		{"100nodes", 100},
+	}
+
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			c := NewClock()
+			for i := 0; i < tt.nodes; i++ {
+				c.Set(NodeID(fmt.Sprintf("node%d", i)), int64(i))
+			}
+
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				c.Increment(NodeID(fmt.Sprintf("node%d", i%tt.nodes)))
+			}
+		})
+	}
+}
+
+// BenchmarkCompare_Scaling measures compare performance with varying node counts.
+func BenchmarkCompare_Scaling(b *testing.B) {
+	tests := []struct {
+		name  string
+		nodes int
+	}{
+		{"10nodes", 10},
+		{"50nodes", 50},
+		{"100nodes", 100},
+	}
+
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			c1 := NewClock()
+			c2 := NewClock()
+			for i := 0; i < tt.nodes; i++ {
+				c1.Set(NodeID(fmt.Sprintf("node%d", i)), int64(i))
+				c2.Set(NodeID(fmt.Sprintf("node%d", i)), int64(i+1))
+			}
+
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				c1.Compare(c2)
+			}
+		})
+	}
+}
+
+// BenchmarkMerge_Scaling measures merge performance with varying node counts.
+func BenchmarkMerge_Scaling(b *testing.B) {
+	tests := []struct {
+		name  string
+		nodes int
+	}{
+		{"10nodes", 10},
+		{"50nodes", 50},
+		{"100nodes", 100},
+	}
+
+	for _, tt := range tests {
+		b.Run(tt.name, func(b *testing.B) {
+			c1 := NewClock()
+			c2 := NewClock()
+			for i := 0; i < tt.nodes; i++ {
+				c1.Set(NodeID(fmt.Sprintf("node%d", i)), int64(i))
+				c2.Set(NodeID(fmt.Sprintf("node%d", i)), int64(i+1))
+			}
+
+			b.ReportAllocs()
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				c1.Merge(c2)
+			}
+		})
+	}
+}
