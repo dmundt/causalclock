@@ -1,10 +1,10 @@
-package version
+package vvector
 
 import (
 	"fmt"
 	"testing"
 
-	vclock "github.com/dmundt/causalclock/clock"
+	"github.com/dmundt/causalclock/clock"
 )
 
 // TestNewVersionVector verifies that NewVersionVector creates properly initialized vectors.
@@ -232,91 +232,91 @@ func TestVersionVectorCompare(t *testing.T) {
 		name     string
 		vector1  map[ReplicaID]uint64
 		vector2  map[ReplicaID]uint64
-		expected vclock.Comparison
+		expected clock.Comparison
 	}{
 		{
 			name:     "both empty",
 			vector1:  map[ReplicaID]uint64{},
 			vector2:  map[ReplicaID]uint64{},
-			expected: vclock.EqualCmp,
+			expected: clock.EqualCmp,
 		},
 		{
 			name:     "identical vectors",
 			vector1:  map[ReplicaID]uint64{"replica1": 5, "replica2": 3},
 			vector2:  map[ReplicaID]uint64{"replica1": 5, "replica2": 3},
-			expected: vclock.EqualCmp,
+			expected: clock.EqualCmp,
 		},
 		{
 			name:     "vector1 before vector2",
 			vector1:  map[ReplicaID]uint64{"replica1": 2, "replica2": 3},
 			vector2:  map[ReplicaID]uint64{"replica1": 5, "replica2": 3},
-			expected: vclock.BeforeCmp,
+			expected: clock.BeforeCmp,
 		},
 		{
 			name:     "vector1 after vector2",
 			vector1:  map[ReplicaID]uint64{"replica1": 5, "replica2": 3},
 			vector2:  map[ReplicaID]uint64{"replica1": 2, "replica2": 3},
-			expected: vclock.AfterCmp,
+			expected: clock.AfterCmp,
 		},
 		{
 			name:     "concurrent vectors (classic conflict)",
 			vector1:  map[ReplicaID]uint64{"replica1": 5, "replica2": 2},
 			vector2:  map[ReplicaID]uint64{"replica1": 2, "replica2": 5},
-			expected: vclock.ConcurrentCmp,
+			expected: clock.ConcurrentCmp,
 		},
 		{
 			name:     "vector1 empty, vector2 has zero",
 			vector1:  map[ReplicaID]uint64{},
 			vector2:  map[ReplicaID]uint64{"replica1": 0},
-			expected: vclock.EqualCmp,
+			expected: clock.EqualCmp,
 		},
 		{
 			name:     "vector1 empty, vector2 has non-zero",
 			vector1:  map[ReplicaID]uint64{},
 			vector2:  map[ReplicaID]uint64{"replica1": 5},
-			expected: vclock.BeforeCmp,
+			expected: clock.BeforeCmp,
 		},
 		{
 			name:     "vector1 has non-zero, vector2 empty",
 			vector1:  map[ReplicaID]uint64{"replica1": 5},
 			vector2:  map[ReplicaID]uint64{},
-			expected: vclock.AfterCmp,
+			expected: clock.AfterCmp,
 		},
 		{
 			name:     "different replica sets - before",
 			vector1:  map[ReplicaID]uint64{"replica1": 2},
 			vector2:  map[ReplicaID]uint64{"replica1": 5, "replica2": 3},
-			expected: vclock.BeforeCmp,
+			expected: clock.BeforeCmp,
 		},
 		{
 			name:     "different replica sets - after",
 			vector1:  map[ReplicaID]uint64{"replica1": 5, "replica2": 3},
 			vector2:  map[ReplicaID]uint64{"replica1": 2},
-			expected: vclock.AfterCmp,
+			expected: clock.AfterCmp,
 		},
 		{
 			name:     "different replica sets - concurrent",
 			vector1:  map[ReplicaID]uint64{"replica1": 5},
 			vector2:  map[ReplicaID]uint64{"replica2": 5},
-			expected: vclock.ConcurrentCmp,
+			expected: clock.ConcurrentCmp,
 		},
 		{
 			name:     "all zeros - equal",
 			vector1:  map[ReplicaID]uint64{"replica1": 0, "replica2": 0},
 			vector2:  map[ReplicaID]uint64{"replica1": 0, "replica2": 0},
-			expected: vclock.EqualCmp,
+			expected: clock.EqualCmp,
 		},
 		{
 			name:     "Dynamo scenario: vector1 strictly dominates",
 			vector1:  map[ReplicaID]uint64{"a": 3, "b": 2, "c": 4},
 			vector2:  map[ReplicaID]uint64{"a": 2, "b": 1, "c": 4},
-			expected: vclock.AfterCmp,
+			expected: clock.AfterCmp,
 		},
 		{
 			name:     "Dynamo scenario: concurrent writes from different replicas",
 			vector1:  map[ReplicaID]uint64{"a": 5, "b": 1, "c": 1},
 			vector2:  map[ReplicaID]uint64{"a": 1, "b": 5, "c": 1},
-			expected: vclock.ConcurrentCmp,
+			expected: clock.ConcurrentCmp,
 		},
 	}
 	
@@ -340,20 +340,20 @@ func TestVersionVectorCompare(t *testing.T) {
 			// Verify comparison is symmetric for Equal and Concurrent
 			reverse := vv2.Compare(vv1)
 			switch tt.expected {
-			case vclock.EqualCmp:
-				if reverse != vclock.EqualCmp {
+			case clock.EqualCmp:
+				if reverse != clock.EqualCmp {
 					t.Errorf("Reverse Compare() = %s, want EqualCmp (symmetric)", reverse)
 				}
-			case vclock.BeforeCmp:
-				if reverse != vclock.AfterCmp {
+			case clock.BeforeCmp:
+				if reverse != clock.AfterCmp {
 					t.Errorf("Reverse Compare() = %s, want AfterCmp", reverse)
 				}
-			case vclock.AfterCmp:
-				if reverse != vclock.BeforeCmp {
+			case clock.AfterCmp:
+				if reverse != clock.BeforeCmp {
 					t.Errorf("Reverse Compare() = %s, want BeforeCmp", reverse)
 				}
-			case vclock.ConcurrentCmp:
-				if reverse != vclock.ConcurrentCmp {
+			case clock.ConcurrentCmp:
+				if reverse != clock.ConcurrentCmp {
 					t.Errorf("Reverse Compare() = %s, want ConcurrentCmp (symmetric)", reverse)
 				}
 			}
@@ -369,27 +369,27 @@ func TestVersionVectorCompareNil(t *testing.T) {
 	nonEmpty.Set("replica1", 5)
 	
 	// nil vs nil
-	if got := nilVector.Compare(nilVector); got != vclock.EqualCmp {
+	if got := nilVector.Compare(nilVector); got != clock.EqualCmp {
 		t.Errorf("nil.Compare(nil) = %s, want EqualCmp", got)
 	}
 	
 	// nil vs empty
-	if got := nilVector.Compare(empty); got != vclock.EqualCmp {
+	if got := nilVector.Compare(empty); got != clock.EqualCmp {
 		t.Errorf("nil.Compare(empty) = %s, want EqualCmp", got)
 	}
 	
 	// empty vs nil
-	if got := empty.Compare(nilVector); got != vclock.EqualCmp {
+	if got := empty.Compare(nilVector); got != clock.EqualCmp {
 		t.Errorf("empty.Compare(nil) = %s, want EqualCmp", got)
 	}
 	
 	// nil vs non-empty
-	if got := nilVector.Compare(nonEmpty); got != vclock.BeforeCmp {
+	if got := nilVector.Compare(nonEmpty); got != clock.BeforeCmp {
 		t.Errorf("nil.Compare(nonEmpty) = %s, want BeforeCmp", got)
 	}
 	
 	// non-empty vs nil
-	if got := nonEmpty.Compare(nilVector); got != vclock.AfterCmp {
+	if got := nonEmpty.Compare(nilVector); got != clock.AfterCmp {
 		t.Errorf("nonEmpty.Compare(nil) = %s, want AfterCmp", got)
 	}
 }

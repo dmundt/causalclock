@@ -1,4 +1,4 @@
-// Package vclock implements vector clocks for distributed systems.
+// Package clock implements vector clocks for distributed systems.
 //
 // A vector clock is a data structure used to determine the partial ordering
 // of events in a distributed system and detect causality violations.
@@ -16,7 +16,7 @@
 // 3. Copy-on-write semantics for immutability where practical
 // 4. Comparison returns explicit enum for clarity
 // 5. Stable iteration order via sorted keys for determinism
-package vclock
+package clock
 
 import (
 	"bytes"

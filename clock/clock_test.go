@@ -1,4 +1,4 @@
-package vclock
+package clock
 
 import (
 	"fmt"

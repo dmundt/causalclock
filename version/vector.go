@@ -1,12 +1,12 @@
-// Package version implements per-object version vectors for distributed systems.
-package version
+// Package vvector implements per-object version vectors for distributed systems.
+package vvector
 
 import (
 	"bytes"
 	"fmt"
 	"sort"
 
-	vclock "github.com/dmundt/causalclock/clock"
+	"github.com/dmundt/causalclock/clock"
 )
 
 // VersionVector implements per-object causal tracking with Dynamo/Riak semantics.
@@ -146,13 +146,13 @@ func (vv *VersionVector) Merge(other *VersionVector) {
 //   - Compare(nil, nil) -> EqualCmp
 //   - Compare(non-empty, nil) -> AfterCmp
 //   - Compare(nil, non-empty) -> BeforeCmp
-func (vv *VersionVector) Compare(other *VersionVector) vclock.Comparison {
+func (vv *VersionVector) Compare(other *VersionVector) clock.Comparison {
 	// Normalize nil vectors to empty vectors
 	vvEmpty := vv == nil || vv.versions == nil || len(vv.versions) == 0
 	otherEmpty := other == nil || other.versions == nil || len(other.versions) == 0
 	
 	if vvEmpty && otherEmpty {
-		return vclock.EqualCmp
+		return clock.EqualCmp
 	}
 	
 	if vvEmpty {
@@ -160,20 +160,20 @@ func (vv *VersionVector) Compare(other *VersionVector) vclock.Comparison {
 		// Check if other has any non-zero values
 		for _, v := range other.versions {
 			if v > 0 {
-				return vclock.BeforeCmp
+				return clock.BeforeCmp
 			}
 		}
-		return vclock.EqualCmp
+		return clock.EqualCmp
 	}
 	
 	if otherEmpty {
 		// vv is not empty, other is
 		for _, v := range vv.versions {
 			if v > 0 {
-				return vclock.AfterCmp
+				return clock.AfterCmp
 			}
 		}
-		return vclock.EqualCmp
+		return clock.EqualCmp
 	}
 	
 	// Both vectors have entries
@@ -202,17 +202,17 @@ func (vv *VersionVector) Compare(other *VersionVector) vclock.Comparison {
 		
 		// Early exit if we know it's concurrent
 		if hasGreater && hasLess {
-			return vclock.ConcurrentCmp
+			return clock.ConcurrentCmp
 		}
 	}
 	
 	if hasGreater && !hasLess {
-		return vclock.AfterCmp
+		return clock.AfterCmp
 	}
 	if hasLess && !hasGreater {
-		return vclock.BeforeCmp
+		return clock.BeforeCmp
 	}
-	return vclock.EqualCmp
+	return clock.EqualCmp
 }
 
 // Replicas returns a sorted list of all replica IDs present in the version vector.
@@ -284,19 +284,19 @@ func (vv *VersionVector) String() string {
 // Equal returns true if two version vectors are identical.
 // This is a convenience wrapper around Compare.
 func (vv *VersionVector) Equal(other *VersionVector) bool {
-	return vv.Compare(other) == vclock.EqualCmp
+	return vv.Compare(other) == clock.EqualCmp
 }
 
 // HappenedBefore returns true if vv happened-before other (vv is an ancestor of other).
 // This is a convenience wrapper around Compare.
 func (vv *VersionVector) HappenedBefore(other *VersionVector) bool {
-	return vv.Compare(other) == vclock.BeforeCmp
+	return vv.Compare(other) == clock.BeforeCmp
 }
 
 // HappenedAfter returns true if vv happened-after other (vv is a descendant of other).
 // This is a convenience wrapper around Compare.
 func (vv *VersionVector) HappenedAfter(other *VersionVector) bool {
-	return vv.Compare(other) == vclock.AfterCmp
+	return vv.Compare(other) == clock.AfterCmp
 }
 
 // Concurrent returns true if vv and other are concurrent (conflict detected).
@@ -305,14 +305,14 @@ func (vv *VersionVector) HappenedAfter(other *VersionVector) bool {
 // In Dynamo/Riak, concurrent versions indicate a conflict that requires
 // application-specific resolution (e.g., last-write-wins, merge, manual resolution).
 func (vv *VersionVector) Concurrent(other *VersionVector) bool {
-	return vv.Compare(other) == vclock.ConcurrentCmp
+	return vv.Compare(other) == clock.ConcurrentCmp
 }
 
 // Descends returns true if vv is a descendant of other (happened-after or equal).
 // This checks if vv could have been derived from other.
 func (vv *VersionVector) Descends(other *VersionVector) bool {
 	cmp := vv.Compare(other)
-	return cmp == vclock.AfterCmp || cmp == vclock.EqualCmp
+	return cmp == clock.AfterCmp || cmp == clock.EqualCmp
 }
 
 // Dominates returns true if vv dominates other (is newer in all aspects).
