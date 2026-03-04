@@ -163,7 +163,7 @@ func (m *Message) Size() int {
 }
 
 // WithMetadata adds metadata to the message (chainable).
-// 
+//
 // CONCURRENCY WARNING: This method is NOT safe for concurrent use.
 // Call this method only during message construction, before sharing
 // the message across goroutines.

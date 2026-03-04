@@ -89,10 +89,10 @@ func Example_jsonVsCbor() {
 func Example_untrustedInput() {
 	// Simulate receiving data from an untrusted source
 	malformedInputs := [][]byte{
-		[]byte(`{"version":0}`),                          // Invalid version
+		[]byte(`{"version":0}`),                           // Invalid version
 		[]byte(`{"version":1,"sender_id":"","clock":{}}`), // Empty sender ID
-		[]byte(`{invalid json`),                          // Malformed JSON
-		make([]byte, message.MaxMessageSize+1),           // Too large
+		[]byte(`{invalid json`),                           // Malformed JSON
+		make([]byte, message.MaxMessageSize+1),            // Too large
 	}
 
 	jsonSer := &message.JSONSerializer{}

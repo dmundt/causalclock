@@ -16,12 +16,12 @@ func TestNewMessage(t *testing.T) {
 	clk.Increment("node1")
 
 	tests := []struct {
-		name      string
-		senderID  string
-		clock     *clock.Clock
-		payload   []byte
-		wantErr   bool
-		errType   error
+		name     string
+		senderID string
+		clock    *clock.Clock
+		payload  []byte
+		wantErr  bool
+		errType  error
 	}{
 		{
 			name:     "valid message",

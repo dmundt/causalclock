@@ -51,11 +51,11 @@ func (m *Message) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements custom JSON unmarshaling for Message.
 func (m *Message) UnmarshalJSON(data []byte) error {
 	var helper messageJSON
-	
+
 	// Use decoder with strict mode to detect unknown fields
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
-	
+
 	if err := decoder.Decode(&helper); err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (m *Message) UnmarshalJSON(data []byte) error {
 		if value < 0 {
 			return fmt.Errorf("invalid clock value for node %s: %d", node, value)
 		}
-		
+
 		// Set the value by merging with a temporary clock
 		tempClock := clock.NewClock()
 		for i := int64(0); i < value; i++ {

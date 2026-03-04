@@ -23,7 +23,7 @@ func NewCBORSerializer() (*CBORSerializer, error) {
 	// Configure encoder with secure defaults
 	encMode, err := cbor.EncOptions{
 		Sort: cbor.SortBytewiseLexical, // Deterministic encoding
-		Time: cbor.TimeRFC3339,          // Standard time format
+		Time: cbor.TimeRFC3339,         // Standard time format
 	}.EncMode()
 	if err != nil {
 		return nil, fmt.Errorf("cbor encoder config failed: %w", err)
@@ -31,9 +31,9 @@ func NewCBORSerializer() (*CBORSerializer, error) {
 
 	// Configure decoder with strict validation
 	decMode, err := cbor.DecOptions{
-		MaxMapPairs:     1000,               // Limit map size
-		MaxArrayElements: 10000,             // Limit array size
-		MaxNestedLevels:  16,                // Prevent deep nesting attacks
+		MaxMapPairs:      1000,                      // Limit map size
+		MaxArrayElements: 10000,                     // Limit array size
+		MaxNestedLevels:  16,                        // Prevent deep nesting attacks
 		DupMapKey:        cbor.DupMapKeyEnforcedAPF, // Reject duplicate keys
 	}.DecMode()
 	if err != nil {
@@ -127,7 +127,7 @@ func (s *CBORSerializer) Unmarshal(data []byte) (*Message, error) {
 		if value < 0 {
 			return nil, fmt.Errorf("invalid clock value for node %s: %d", node, value)
 		}
-		
+
 		// Set the value by incrementing a temporary clock
 		tempClock := clock.NewClock()
 		for i := int64(0); i < value; i++ {
